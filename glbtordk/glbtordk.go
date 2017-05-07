@@ -1,18 +1,13 @@
 package glbtordk
 
 import (
-  "bytes"
+  "strings"
   "encoding/json"
   "fmt"
-  "io"
-  "net/http"
-  "net/url"
-  "regexp"
-  "strconv"
-  "strings"
-  "github.com/urfave/cli"
-  "github.com/vulcand/oxy/utils"
+  "github.com/codegangsta/cli"
   "github.com/vulcand/vulcand/plugin"
+  "io/ioutil"
+  "net/http"
 )
 
 const Type = "glbtordk"
@@ -40,20 +35,20 @@ type GlbtordkHandler struct {
 
 // This function will be called each time the request hits the location with this middleware activated
 func (g *GlbtordkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-  data, err := r.Header.Get(g.cfg.Header)
+  data := r.Header.Get(g.cfg.Header)
 
-  if data != nil {
+  if data != "" {
     params := r.URL.Query()
 
     if len(params) != 0 {
       oldBody, err := ioutil.ReadAll(r.Body)
-  		var data map[string]interface{}
+      var data map[string]interface{}
       json.Unmarshal(oldBody, &data)
       newData := make(map[string]interface{},len(params)+1)
       for k, v := range params {
         newData[k] = v
       }
-      newData['payload'] = data
+      newData["payload"] = data
       newBody, _ := json.Marshal(newData)
       ioutil.NopCloser(strings.NewReader(newBody))
       r.ContentLength = int64(len(newBody))
