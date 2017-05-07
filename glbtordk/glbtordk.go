@@ -41,18 +41,20 @@ type GlbtordkHandler struct {
 // This function will be called each time the request hits the location with this middleware activated
 func (g *GlbtordkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   data, err := r.Header.Get(g.cfg.Header)
+
   if data != nil {
-    params, err := r.URL.Query()
+    params := r.URL.Query()
 
     if len(params) != 0 {
-      var newBody []interface{}
-      oldBody, err := ioutil.ReadAll(r.Body);
-      if err != nil {
-        newBody['payload'] := oldBody
-        for k, v := range m {
-          newBody[k] := v
-        }
+      oldBody, err := ioutil.ReadAll(r.Body)
+  		var data map[string]interface{}
+      json.Unmarshal(oldBody, &data)
+      newData := make(map[string]interface{},len(params)+1)
+      for k, v := range params {
+        newData[k] = v
       }
+      newData['payload'] = data
+      newBody, _ := json.Marshal(newData)
       ioutil.NopCloser(strings.NewReader(newBody))
       r.ContentLength = int64(len(newBody))
     }
