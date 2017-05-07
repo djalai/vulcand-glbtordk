@@ -1,10 +1,9 @@
 package glbtordk
 
 import (
-  "strings"
+  "bytes"
   "encoding/json"
   "fmt"
-  "github.com/codegangsta/cli"
   "github.com/vulcand/vulcand/plugin"
   "io/ioutil"
   "net/http"
@@ -50,7 +49,7 @@ func (g *GlbtordkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
       }
       newData["payload"] = data
       newBody, _ := json.Marshal(newData)
-      ioutil.NopCloser(strings.NewReader(newBody))
+      ioutil.NopCloser(bytes.NewReader(newBody))
       r.ContentLength = int64(len(newBody))
     }
   }
