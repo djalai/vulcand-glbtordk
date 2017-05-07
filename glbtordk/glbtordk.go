@@ -4,7 +4,8 @@ import (
   "bytes"
   "encoding/json"
   "fmt"
-  "github.com/vulcand/vulcand"
+  "github.com/vulcand/vulcand/vendor/github.com/codegangsta/cli"
+  "github.com/vulcand/vulcand/plugin"
   "io/ioutil"
   "net/http"
 )
@@ -13,7 +14,7 @@ const Type = "glbtordk"
 
 func GetSpec() *plugin.MiddlewareSpec {
   return &plugin.MiddlewareSpec{
-    Type:  Type,   // A short name for the middleware
+    Type:      Type,   // A short name for the middleware
     FromOther: FromOther,  // Tells vulcand how to create middleware from another one
     FromCli:   FromCli,  // Tells vulcand how to create middleware from CLI
     CliFlags:  CliFlags(), // Vulcand will add this flags CLI command
@@ -57,6 +58,14 @@ func (g *GlbtordkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   g.next.ServeHTTP(w, r)
 }
 
+// This function is optional but handy, used to check input parameters when creating new middlewares
+func New(header string) (*GlbtordkMiddleware, error) {
+    if header == "" {
+        return nil, fmt.Errorf("header can not be empty")
+    }
+    return &GlbtordkMiddleware{Header: header}, nil
+}
+
 // This function is important, it's called by vulcand to create a new handler from the middleware config and put it into the
 // middleware chain. Note that we need to remember 'next' handler to call
 func (c *GlbtordkMiddleware) NewHandler(next http.Handler) (http.Handler, error) {
@@ -66,4 +75,28 @@ func (c *GlbtordkMiddleware) NewHandler(next http.Handler) (http.Handler, error)
 // String() will be called by loggers inside Vulcand and command line tool.
 func (c *GlbtordkMiddleware) String() string {
   return fmt.Sprintf("gitlab webhook header=%v", c.Header)
+}
+
+// FromOther Will be called by Vulcand when engine or API will read the middleware from the serialized format.
+// It's important that the signature of the function will be exactly the same, otherwise Vulcand will
+// fail to register this middleware.
+// The first and the only parameter should be the struct itself, no pointers and other variables.
+// Function should return middleware interface and error in case if the parameters are wrong.
+func FromOther(g GlbtordkMiddleware) (plugin.Middleware, error) {
+  return New(g.Header)
+}
+
+// FromCli constructs the middleware from the command line
+func FromCli(c *cli.Context) (plugin.Middleware, error) {
+  return New(c.String("header"))
+}
+
+// CliFlags will be used by Vulcand construct help and CLI command for the vctl command
+func CliFlags() []cli.Flag {
+  return []cli.Flag{
+    cli.StringFlag{
+      Name:  "header",
+      Usage: "Gitlab header to match against http request to ensure it's coming from gitlab",
+    },
+  }
 }
