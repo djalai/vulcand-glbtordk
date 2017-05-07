@@ -4,7 +4,7 @@ import (
   "bytes"
   "encoding/json"
   "fmt"
-  "github.com/vulcand/vulcand/plugin"
+  "github.com/vulcand/vulcand"
   "io/ioutil"
   "net/http"
 )
