@@ -46,7 +46,7 @@ func (g *GlbtordkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
     newData := make(map[string]interface{})
     newData["options"] = make(map[string]interface{})
-    newData["options"]["gitlabpayload"] = data
+    newData["options"].(map[string]interface{})["gitlabpayload"] = data
 
     params := r.URL.Query()
     argstring := params.Get("argString")
