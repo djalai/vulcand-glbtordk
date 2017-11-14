@@ -8,6 +8,7 @@ import (
   "github.com/vulcand/vulcand/plugin"
   "io/ioutil"
   "net/http"
+  "strings"
 )
 
 const Type = "glbtordk"
