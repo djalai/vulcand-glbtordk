@@ -45,7 +45,8 @@ func (g *GlbtordkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     json.Unmarshal(oldBody, &data)
 
     newData := make(map[string]interface{})
-    newData["option.GITLABPAYLOAD"] = data
+    newData["options"] = make(map[string]interface{})
+    newData["options"]["gitlabpayload"] = data
 
     params := r.URL.Query()
     argstring := params.Get("argString")
@@ -54,7 +55,7 @@ func (g *GlbtordkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
       for _, element := range args {
         if element != "" {
           myoption := strings.Fields(element)
-          newData["option." + strings.ToUpper(myoption[0])] = myoption[1]
+          newData["options"].(map[string]interface{})[myoption[0]] = myoption[1]
         }
       }
     }
