@@ -4,7 +4,7 @@ import (
   "bytes"
   "encoding/json"
   "fmt"
-  "github.com/vulcand/vulcand/vendor/github.com/codegangsta/cli"
+  "github.com/codegangsta/cli"
   "github.com/vulcand/vulcand/plugin"
   "io/ioutil"
   "net/http"
