@@ -35,25 +35,34 @@ type GlbtordkHandler struct {
 
 // This function will be called each time the request hits the location with this middleware activated
 func (g *GlbtordkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-  data := r.Header.Get(g.cfg.Header)
 
-  if data != "" {
+  gitlabheader := r.Header.Get(g.cfg.Header)
+
+  if gitlabheader != "" {
+    oldBody, _ := ioutil.ReadAll(r.Body)
+    var data map[string]interface{}
+    json.Unmarshal(oldBody, &data)
+
+    newData := make(map[string]interface{})
+    newData["option.GITLABPAYLOAD"] = data
+
     params := r.URL.Query()
-
-    if len(params) != 0 {
-      oldBody, err := ioutil.ReadAll(r.Body)
-      var data map[string]interface{}
-      json.Unmarshal(oldBody, &data)
-      newData := make(map[string]interface{},len(params)+1)
-      for k, v := range params {
-        newData[k] = v
+    argstring := params.Get("argString")
+    if argstring != "" {
+      args := strings.Split(argstring,"-")
+      for _, element := range args {
+        if element != "" {
+          myoption := strings.Fields(element)
+          newData["option." + strings.ToUpper(myoption[0])] = myoption[1]
+        }
       }
-      newData["payload"] = data
-      newBody, _ := json.Marshal(newData)
-      ioutil.NopCloser(bytes.NewReader(newBody))
-      r.ContentLength = int64(len(newBody))
     }
+
+    newBody, _ := json.Marshal(newData)
+    r.Body = ioutil.NopCloser(bytes.NewReader(newBody))
+    r.ContentLength = int64(len(newBody))
   }
+
   // Pass the request to the next middleware in chain
   g.next.ServeHTTP(w, r)
 }
