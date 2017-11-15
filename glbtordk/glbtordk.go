@@ -37,16 +37,15 @@ type GlbtordkHandler struct {
 // This function will be called each time the request hits the location with this middleware activated
 func (g *GlbtordkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
+
   gitlabheader := r.Header.Get(g.cfg.Header)
 
   if gitlabheader != "" {
     oldBody, _ := ioutil.ReadAll(r.Body)
-    var data map[string]interface{}
-    json.Unmarshal(oldBody, &data)
 
     newData := make(map[string]interface{})
-    newData["options"] = make(map[string]interface{})
-    newData["options"].(map[string]interface{})["gitlabpayload"] = data
+    newData["options"] = make(map[string]string)
+    newData["options"].(map[string]string)["gitlabpayload"] = string(oldBody[:])
 
     params := r.URL.Query()
     argstring := params.Get("argString")
@@ -55,7 +54,7 @@ func (g *GlbtordkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
       for _, element := range args {
         if element != "" {
           myoption := strings.Fields(element)
-          newData["options"].(map[string]interface{})[myoption[0]] = myoption[1]
+          newData["options"].(map[string]string)[myoption[0]] = myoption[1]
         }
       }
     }
